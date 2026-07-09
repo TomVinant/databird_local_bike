@@ -1,4 +1,4 @@
-name: 'databird_final_case'
+name: 'databird_local_bike'
 version: '1.0.0'
 config-version: 2
 dbt-cloud:
@@ -34,7 +34,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 # using the `{{ config(...) }}` macro.
 
 models:
-  databird_final_case:
+  databird_local_bike:
     staging: 
       +materialized: view
     intermediate:
