@@ -2,8 +2,7 @@ name: 'databird_final_case'
 version: '1.0.0'
 config-version: 2
 dbt-cloud:
-    project-id: 70506183150162
-    defer-env-id: 70506183144032
+    project-id: 70506183150202
 
 # This setting configures which "profile" dbt uses for this project.
 profile: 'user'
