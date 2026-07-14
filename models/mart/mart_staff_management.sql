@@ -4,12 +4,6 @@ WITH orders AS (
 
 ),
 
-stores AS (
-
-    SELECT * FROM {{ ref('stg_stores') }}
-
-),
-
 staff AS (
 
     SELECT * FROM {{ ref('stg_staffs') }}
@@ -62,7 +56,6 @@ ttm_performance AS (
 
 SELECT
   tp.store_id,
-  s.store_name,
   window_bounds.max_order_date AS window_end_date,
   tp.total_orders_ttm,
   tp.total_items_sold_ttm,
@@ -71,8 +64,6 @@ SELECT
   ROUND(tp.total_revenue_ttm / NULLIF(a.active_staff_count, 0), 2) AS revenue_per_staff_ttm,
   ROUND(tp.total_items_sold_ttm / NULLIF(a.active_staff_count, 0), 2) AS items_sold_per_staff_ttm
 FROM ttm_performance tp
-LEFT JOIN stores s
-  ON tp.store_id = s.store_id
 CROSS JOIN window_bounds
 LEFT JOIN active_staff_by_store a
   ON tp.store_id = a.store_id

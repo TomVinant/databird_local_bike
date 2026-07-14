@@ -2,17 +2,10 @@ WITH orders AS (
 
     SELECT * FROM {{ ref('int_orders') }}
 
-),
-
-stores AS (
-
-    SELECT * FROM {{ ref('stg_stores') }}
-
 )
 
 SELECT
   o.store_id,
-  s.store_name,
   DATE_TRUNC(o.order_date, MONTH) AS order_month,
   COUNT(DISTINCT o.order_id) AS total_orders,
   SUM(o.total_items) AS total_items_sold,
@@ -21,6 +14,4 @@ SELECT
   ROUND(AVG(CASE WHEN o.is_shipped = 1 THEN o.fulfillment_days END), 2) AS avg_fulfillment_days,
   ROUND(SUM(o.is_on_time) / NULLIF(SUM(o.is_shipped), 0), 2) AS on_time_delivery_rate
 FROM orders o
-LEFT JOIN stores s
-  ON o.store_id = s.store_id
-GROUP BY o.store_id, s.store_name, DATE_TRUNC(o.order_date, MONTH)
+GROUP BY o.store_id, DATE_TRUNC(o.order_date, MONTH)
