@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: mart_stock_optimization
+    description: >
+      Mart model summarizing stock health by store and product category,
+      based on demand computed over a rolling 12-month window. Each row
+      represents a unique store-category combination and reports how many
+      tracked products fall into each stock status.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - store_id
+              - category_id
+
+    columns:
+      - name: store_id
+        description: >
+          Foreign key referencing stg_stores. Part of the composite primary
+          key (store_id + category_id).
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
+      - name: store_name
+        description: Name of the store.
+
+      - name: category_id
+        description: >
+          Foreign key referencing stg_categories. Part of the composite
+          primary key (store_id + category_id).
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_categories')
+                field: category_id
+
+      - name: category_name
+        description: Name of the category.
+
+      - name: total_products_tracked
+        description: >
+          Count of store-product combinations tracked in
+          int_stock_vs_demand for this store and category.
+
+      - name: out_of_stock_products
+        description: Count of tracked products with stock_status = 'out_of_stock'.
+
+      - name: understock_products
+        description: Count of tracked products with stock_status = 'understock'.
+
+      - name: balanced_products
+        description: Count of tracked products with stock_status = 'stock_balanced'.
+
+      - name: overstock_products
+        description: Count of tracked products with stock_status = 'overstock'.
+
+      - name: pct_out_of_stock
+        description: Share of tracked products that are out of stock, as a fraction.
+
+      - name: pct_understock
+        description: Share of tracked products that are understocked, as a fraction.
+
+      - name: pct_overstock
+        description: Share of tracked products that are overstocked, as a fraction.
