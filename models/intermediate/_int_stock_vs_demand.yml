@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: int_stock_vs_demand
+    description: >
+      Intermediate model comparing current stock levels against trailing
+      twelve-month (TTM) demand for each store-product combination. The
+      TTM window is anchored on the most recent order_date in the dataset
+      rather than the real current date, since the underlying data is
+      historical.
+
+    columns:
+      - name: stock_id
+        description: >
+          Primary key. Surrogate key from stg_stocks identifying a unique
+          store-product combination.
+        tests:
+          - unique
+          - not_null
+
+      - name: store_id
+        description: >
+          Foreign key referencing stg_stores. Identifies the store holding
+          the stock.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
+      - name: product_id
+        description: >
+          Foreign key referencing stg_products. Identifies the product
+          being stocked.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+
+      - name: category_id
+        description: >
+          Foreign key referencing stg_categories. Identifies the category
+          of the product, joined in from stg_products.
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_categories')
+                field: category_id
+
+      - name: brand_id
+        description: >
+          Foreign key referencing stg_brands. Identifies the brand of the
+          product, joined in from stg_products.
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+
+      - name: stock_quantity
+        description: Quantity of the product currently in stock at the store.
+
+      - name: total_quantity_ordered_ttm
+        description: >
+          Total quantity of the product ordered from the store over the
+          trailing twelve months, defaulted to 0 when there were no orders.
+
+      - name: avg_monthly_demand
+        description: >
+          Average monthly demand, computed as total_quantity_ordered_ttm / 12.
+
+      - name: months_of_stock_remaining
+        description: >
+          Estimated number of months the current stock will last at the
+          average monthly demand rate. NULL when there was no demand over
+          the TTM window.
+
+          Singular test assert_int_stock_vs_demand_months_of_stock_remaining_not_negative
+          checks that this value is never negative.
+
+      - name: stock_status
+        description: >
+          Computed classification of the stock position: 'out_of_stock'
+          when stock_quantity is 0, 'understock' when months_of_stock_remaining
+          is 6 or fewer, 'overstock' when months_of_stock_remaining is 24 or
+          more (or undefined with stock_quantity of 5 or more), and
+          'stock_balanced' otherwise.

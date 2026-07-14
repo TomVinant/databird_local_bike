@@ -1,0 +1,99 @@
+version: 2
+
+models:
+  - name: int_orders
+    description: >
+      Intermediate model for orders enriched with line-item aggregates and
+      fulfillment metrics. Each row represents a single order.
+
+    columns:
+      - name: order_id
+        description: >
+          Primary key. Unique identifier for each order, inherited from
+          stg_orders.
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: >
+          Foreign key referencing stg_customers. Identifies the customer
+          who placed the order.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+
+      - name: order_status
+        description: >
+          Numeric code representing the current status of the order.
+
+      - name: order_date
+        description: Date when the order was placed by the customer.
+
+      - name: required_date
+        description: Date by which the customer requested the order to be fulfilled.
+
+      - name: store_id
+        description: >
+          Foreign key referencing stg_stores. Identifies the store that
+          received the order.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
+      - name: staff_id
+        description: >
+          Foreign key referencing stg_staffs. Identifies the staff member
+          who processed the order.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_staffs')
+                field: staff_id
+
+      - name: shipped_date
+        description: >
+          Date when the order was shipped to the customer. NULL if the
+          order has not yet shipped.
+
+      - name: total_items
+        description: >
+          Total quantity of units across all line items in the order.
+          Computed as the sum of quantity from stg_order_items, defaulted
+          to 0 when the order has no line items.
+
+      - name: total_distinct_items
+        description: >
+          Count of distinct line items (products) in the order, defaulted
+          to 0 when the order has no line items.
+
+      - name: total_order_amount
+        description: >
+          Total monetary amount of the order, computed as the sum of
+          quantity * list_price * (1 - discount_pct) across all line items,
+          defaulted to 0 when the order has no line items.
+
+      - name: fulfillment_days
+        description: >
+          Number of days between order_date and shipped_date. NULL if the
+          order has not yet shipped.
+
+          Singular test assert_int_orders_fulfillment_days_not_negative
+          checks that this value is never negative.
+
+      - name: is_shipped
+        description: >
+          Computed flag. 1 if the order has a shipped_date, 0 otherwise.
+
+      - name: is_on_time
+        description: >
+          Computed flag. 1 if the order shipped on or before required_date,
+          0 if it shipped late, and NULL if the order is an in-store order
+          (order_status = 3) or has not yet shipped.
