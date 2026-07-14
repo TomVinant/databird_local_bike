@@ -33,7 +33,14 @@ SELECT
   orders.shipped_date,
   COALESCE(order_items_agg.total_items, 0) AS total_items,
   COALESCE(order_items_agg.total_distinct_items, 0) AS total_distinct_items,
-  COALESCE(order_items_agg.total_order_amount, 0) AS total_order_amount
+  COALESCE(order_items_agg.total_order_amount, 0) AS total_order_amount,
+  DATE_DIFF(orders.shipped_date, orders.order_date, DAY) AS fulfillment_days,
+  CASE WHEN orders.shipped_date IS NOT NULL THEN 1 ELSE 0 END AS is_shipped,
+  CASE
+    WHEN orders.order_status = 3 THEN NULL -- order_status 3 = commande magasin, non applicable
+    WHEN orders.shipped_date IS NOT NULL AND orders.shipped_date <= orders.required_date THEN 1
+    ELSE 0
+  END AS is_on_time
 FROM orders
 LEFT JOIN order_items_agg
   ON orders.order_id = order_items_agg.order_id
