@@ -11,17 +11,15 @@ models:
     columns:
       - name: store_id
         description: >
-          Primary key. Unique identifier for each store.
+          Primary key. Unique identifier for each store. Foreign key
+          referencing dim_stores.
         tests:
           - unique
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_stores')
+                to: ref('dim_stores')
                 field: store_id
-
-      - name: store_name
-        description: Name of the store.
 
       - name: window_end_date
         description: >
